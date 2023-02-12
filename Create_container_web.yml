@@ -21,8 +21,6 @@
   hosts: "node-ansible-base"
   gather_facts: false
   tasks:
-#    - name: Install Python3
-#      raw: apt update && apt upgrade -y && apt install python3 -y
     - name: Install Rsync
       apt:
         name: rsync
@@ -32,8 +30,6 @@
         dest: /var/www
     - name: Clean up Rcync
       raw: apt purge rsync -y
-#    - name: Clean up Python 3 and Prerequisites
-#      raw: apt purge python3 rsync -y
 
 - name: Yarn install dependenses, build and start on container
   hosts: "node-ansible-base"
@@ -44,20 +40,5 @@
     - name: Doing Yarn build command
       command: yarn build
     - name: Doing Yarn start command
-      command: yarn start
-
-
-#- name: Snapshot base image to create newly configured Image
-#  hosts: localhost
-#  tasks:
-#    - name: Commit Docker image
-#      command: docker commit "nginx-ansible-base" "nginx-ansible-build-demo"
-#
-#- name: Clean Up Docker Containers
-#  hosts: localhost
-#  tasks:
-#    - name: Remove Running Base Image
-#      docker_container:
-#        name: node-ansible-base
-#        state: absent
-#        force_kill: yes
+      #command: yarn start &
+      ansible.builtin.shell: yarn start &
