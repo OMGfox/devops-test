@@ -9,8 +9,9 @@
         state: started
         ports:
           - "8080:3000"
-#        command: tail -f /dev/null
-    - name: Add Image with Node to Ansible Hosts
+        working_dir: /var/www/
+        command: tail -f /dev/null
+    - name: Add container with Node to Ansible Hosts
       add_host:
         name: "node-ansible-base"
         ansible_connection: docker
@@ -29,10 +30,6 @@
       synchronize:
         src: ./web-app/
         dest: /var/www
-    - name: Check node is enabled
-      service:
-        name: node
-        enabled: yes
     - name: Clean up Rcync
       raw: apt purge rsync -y
 #    - name: Clean up Python 3 and Prerequisites
@@ -40,6 +37,7 @@
 
 - name: Yarn install dependenses, build and start on container
   hosts: "node-ansible-base"
+  gather_facts: false
   tasks:
     - name: Doing Yarn install command
       command: yarn install
