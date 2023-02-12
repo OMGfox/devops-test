@@ -27,7 +27,7 @@
         name: rsync
     - name: Copy webapp files to docker container
       synchronize:
-        src: ./webapp/
+        src: ./web-app/
         dest: /var/www
     - name: Check node is enabled
       service:
