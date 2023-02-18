@@ -34,14 +34,20 @@
     - name: Clean up Rcync
       raw: apt purge rsync -y
 
-- name: Yarn install dependenses, build and start on container
+- name: Start Apache2 | Yarn install dependenses, build and
   hosts: "node-ansible-base"
   gather_facts: false
   tasks:
+    - name: Start Apache
+      service:
+        name: apache2
+        state: started
     - name: Doing Yarn install command
       command: yarn install
     - name: Doing Yarn build command
       command: yarn build
-#    - name: Doing Yarn start command
-#      command: yarn start &
-#      ansible.builtin.shell: yarn start &
+    - name: Move build folder to need path
+      copy:
+        remote_src: yes
+        src: /var/www/build/
+        dest: /var/www/html/
