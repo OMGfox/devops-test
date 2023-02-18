@@ -29,7 +29,7 @@
         name: apache2
     - name: Copy webapp files to docker container
       synchronize:
-        src: ./web-app/
+        src: ./
         dest: /var/www
     - name: Clean up Rcync
       raw: apt purge rsync -y
@@ -46,7 +46,7 @@
       command: yarn install
     - name: Doing Yarn build command
       command: yarn build
-    - name: Move build folder to need path
+    - name: Copy build folder to need path
       copy:
         remote_src: yes
         src: /var/www/build/
