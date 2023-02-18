@@ -8,7 +8,7 @@
         image: "node:14.15.0-stretch"
         state: started
         ports:
-          - "8080:3000"
+          - "8080:80"
         working_dir: /var/www/
         command: tail -f /dev/null
     - name: Add container with Node to Ansible Hosts
@@ -24,6 +24,9 @@
     - name: Install Rsync
       apt:
         name: rsync
+    - name: Install Apache Web Server
+      apt:
+        name: apache2
     - name: Copy webapp files to docker container
       synchronize:
         src: ./web-app/
@@ -39,6 +42,6 @@
       command: yarn install
     - name: Doing Yarn build command
       command: yarn build
-    - name: Doing Yarn start command
-      #command: yarn start &
-      ansible.builtin.shell: yarn start &
+#    - name: Doing Yarn start command
+#      command: yarn start &
+#      ansible.builtin.shell: yarn start &
