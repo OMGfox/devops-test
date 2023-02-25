@@ -39,7 +39,7 @@
         path: "/var/www/{{item}}"
         recurse: yes
         state: directory
-      with_items: ["builds/current_build", "builds/previus_build"]
+      with_items: ["builds/current_build", "builds/previous_build"]
 
   #Копирование текущей директории в контейнер
 - name: Copy source files
@@ -76,8 +76,8 @@
         remote_src: yes
         src: /var/www/source_code/build
         dest: /var/www/builds/current_build/
-      #Создаю ссылку в /var/www/html/ на текущую сборку
-    - name: Create symbolic link
+      #Создаю ссылку в /var/www/html/ на текущую сборк
+    - name: Create symbolic link for activate
       file:
         src: /var/www/builds/current_build/build
         dest: /var/www/html/build_link
