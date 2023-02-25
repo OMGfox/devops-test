@@ -1,0 +1,26 @@
+---
+- name: Add container with ReactApp to Ansible hosts
+  hosts: localhost
+  tasks:
+    - name: Add container to Ansible Hosts
+      add_host:
+        name: "node-ansible-base"
+        ansible_connection: docker
+        ansible_ssh_user: root
+
+- name: Revert to previous version
+  hosts: "node-ansible-base"
+  gather_facts: false
+  tasks:
+      #Очистка папки /var/www/html
+    - name: Clear /var/www/html directory
+      file:
+        state: "{{ item }}"
+        path: "/var/www/html"
+      with_items: ["absent", "directory"]
+      #Создаю ссылку в /var/www/html/ на предыдущую версию сборки
+    - name: Create symbolic link for revert previous version
+      file:
+        src: /var/www/builds/previous_build/build
+        dest: /var/www/html/build_link
+        state: link
