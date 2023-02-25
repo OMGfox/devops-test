@@ -9,7 +9,7 @@
         state: started
         ports:
           - "8080:80"
-        working_dir: /var/www/
+        working_dir: /var/www/source_code
         command: tail -f /dev/null
     - name: Add container with Node to Ansible Hosts
       add_host:
@@ -21,33 +21,64 @@
   hosts: "node-ansible-base"
   gather_facts: false
   tasks:
+  #Rsync будет использоваться для загрузки исходников в контейнер
     - name: Install Rsync
       apt:
         name: rsync
+  #Apache в качестве веб сервера
     - name: Install Apache Web Server
       apt:
         name: apache2
+
+  #Создаю дирректории для blue-green деплоя
+- name: Create directories
+  hosts: "node-ansible-base"
+  tasks:
+    - name: Creating new directories
+      file:
+        path: "/var/www/{{item}}"
+        recurse: yes
+        state: directory
+      with_items: ["builds/current_build", "builds/previus_build"]
+
+  #Копирование текущей директории в контейнер
+- name: Copy source files
+  hosts: "node-ansible-base"
+  gather_facts: false
+  tasks:
     - name: Copy webapp files to docker container
       synchronize:
         src: ./
-        dest: /var/www
-    - name: Clean up Rcync
-      raw: apt purge rsync -y
+        dest: /var/www/source_code
 
 - name: Start Apache2 | Yarn install dependenses, build and
   hosts: "node-ansible-base"
   gather_facts: false
   tasks:
+      #Меняю в конфиге Apache путь
+    - name: Edit apache config
+      ansible.builtin.replace:
+        path: /etc/apache2/sites-available/000-default.conf
+        regexp: '/var/www/html'
+        replace: '/var/www/html/build_link'
     - name: Start Apache
       service:
         name: apache2
         state: started
+      #Билд проекта
     - name: Doing Yarn install command
       command: yarn install
     - name: Doing Yarn build command
       command: yarn build
-    - name: Copy build folder to need path
+      #Копирование в папку для build
+    - name: Copy build folder to current_build folder
       copy:
         remote_src: yes
-        src: /var/www/build/
-        dest: /var/www/html/
+        src: /var/www/source_code/build
+        dest: /var/www/builds/current_build/
+      #Создаю ссылку в /var/www/html/ на текущую сборку
+    - name: Create symbolic link
+      file:
+        src: /var/www/builds/current_build/build
+        dest: /var/www/html/build_link
+        state: link
