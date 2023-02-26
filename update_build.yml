@@ -1,0 +1,54 @@
+---
+- name: Add container with ReactApp to Ansible hosts
+  hosts: localhost
+  tasks:
+    - name: Add container to Ansible Hosts
+      add_host:
+        name: "node-ansible-base"
+        ansible_connection: docker
+        ansible_ssh_user: root
+
+- name: Create backup and Update current build version
+  hosts: "node-ansible-base"
+  gather_facts: false
+  tasks:
+      #Удаление старых папок node_modules и build из source_code
+    - name: Recursively remove old dir's from "install" and "build" commands
+      ansible.builtin.file:
+        path: "/var/www/source_code/{{item}}"
+        state: absent
+      with_items: ["build", "node_modules"]
+      #Загрузка новых и измененных файлов в source_code
+    - name: Sync source files
+      synchronize:
+        src: ./
+        dest: /var/www/source_code
+      #Билд проекта
+    - name: Doing Yarn install command
+      command: yarn install
+    - name: Doing Yarn build command
+      command: yarn build
+      #Удалить папку с предыдущей версией билда и создать снова
+    - name: Clear previous_build directory
+      file:
+        state: "{{ item }}"
+        path: "/var/www/builds/previous_build/"
+      with_items: ["absent", "directory"]
+      #Копирование текущей версию в папку с предыдущей версией
+    - name: Copy current version dir to previous dir
+      copy:
+        remote_src: yes
+        src: /var/www/builds/current_build/
+        dest: /var/www/builds/previous_build/
+      #Очистка папки с текущим билдом
+    - name: Clear current_build directory
+      file:
+        state: "{{ item }}"
+        path: "/var/www/builds/current_build/"
+      with_items: ["absent", "directory"]
+      #Копирование нового билда в папку с текущей сборкой
+    - name: Copy build folder to current_build folder
+      copy:
+        remote_src: yes
+        src: /var/www/source_code/build
+        dest: /var/www/builds/current_build/
